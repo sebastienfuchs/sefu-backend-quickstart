@@ -6,7 +6,7 @@
   * .docker/bin/generate_certs.sh
 - make install
 - docker-compose up -d
-- cd html/ && composer install
+- make create.symfony.project
 
 - Start to dev in html/src and enjoy :zany_face:
 
