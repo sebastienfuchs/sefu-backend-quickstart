@@ -1,0 +1,148 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./.docker/images/phpapache
+      args:
+        - COMPOSER_VERSION=${COMPOSER_VERSION}
+        - PHP_VERSION=${PHP_VERSION}
+    container_name: '${PROJECT_NAME}-backend'
+    restart: always
+    ports:
+      - '14080:80'
+      - '443:443'
+    working_dir: /var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./html:/var/www/html
+      - ./.docker/config/php/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./.docker/config/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini:ro
+      - ./.docker/config/php/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini:ro
+      - ./.docker/config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./.docker/config/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf:ro
+      - ./.docker/logs/apache:/var/log/apache2
+      - ./.docker/config/ssl/server.cert:/sslcerts/server.cert
+      - ./.docker/config/ssl/server.key:/sslcerts/server.key
+    depends_on:
+      - database
+      - redis
+      - rabbitmq
+      - es01
+    networks:
+      - network
+
+  redis:
+    image: redis:${REDIS_VERSION}
+    container_name: '${PROJECT_NAME}-redis'
+    command: redis-server --include /usr/local/etc/redis/redis.conf
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./.docker/config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - network
+
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
+    container_name: '${PROJECT_NAME}-rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - ./.docker/data/rabbitmq/:/var/lib/rabbitmq/
+      - ./.docker/logs/rabbitmq/:/var/log/rabbitmq
+    networks:
+      - network
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
+    container_name: '${PROJECT_NAME}-es01'
+    hostname: elasticsearch
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - node.name=es01
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.audit.enabled=true
+      - bootstrap.memory_lock=true
+      - ELASTIC_PASSWORD=somethingsecret
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./.docker/data/es01/:/usr/share/elasticsearch/data
+      - ./.docker/config/elasticsearch/es01.yml:/usr/share/elasticsearch/elasticsearch.yml:ro
+    healthcheck:
+      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
+    networks:
+      - network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${KIBANA_VERSION}
+    container_name: '${PROJECT_NAME}-kibana'
+    hostname: kibana
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./.docker/config/kibana/kibana.yml:/usr/share/kibana/kibana.yml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/"]
+      retries: 6
+    restart: on-failure
+    depends_on:
+      - es01
+    networks:
+      - network
+
+  database:
+    image: mysql:${MYSQL_VERSION}
+    container_name: '${PROJECT_NAME}-database'
+    command: --max_allowed_packet=16M
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - ./.docker/data/mysql:/var/lib/mysql
+      - ./.docker/logs/mysql:/var/log/mysql/
+      - ./.docker/config/mysql/conf-mysql.cnf:/etc/mysql/mysql.conf.d/conf-mysql.cnf:ro
+    networks:
+      - network
+
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION}
+    container_name: '${PROJECT_NAME}-portainer'
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./.docker/data/portainer:/data
+    ports:
+      - "9000:9000"
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24

@@ -1,0 +1,12 @@
+.docker/bin/mkcert
+.docker/config/ssl/server.cert
+.docker/config/ssl/server.key
+.docker/data/mysql/*
+.docker/data/es01/*
+.docker/data/rabbitmq/*
+.docker/data/portainer/*
+.docker/logs/apache/*
+.docker/logs/mysql/*
+.docker/logs/rabbitmq/*
+.env
+.idea/
