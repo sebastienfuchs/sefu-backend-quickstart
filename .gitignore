@@ -10,3 +10,4 @@
 .docker/logs/rabbitmq/*
 .env
 .idea/
+html/
