@@ -1,6 +1,7 @@
 # Quick Start Backend
 
 - Choose your custom domain `sefu.test` on the `.env` :
+- cp .env.dist .env
 - make install
 - make create.symfony.project
 
