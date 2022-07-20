@@ -1,11 +1,7 @@
 # Quick Start Backend
 
-- Choose your custom domain `sefu.test` in :
-  * Makefile
-  * .docker/config/apache/000-default.conf
-  * .docker/bin/generate_certs.sh
+- Choose your custom domain `sefu.test` on the `.env` :
 - make install
-- docker-compose up -d
 - make create.symfony.project
 
 - Start to dev in html/src and enjoy :zany_face:
@@ -62,6 +58,10 @@
 - ELASTICSEARCH : `7.17.5`
 - KIBANA : `7.17.5`
 - PORTAINER : `2.14.1`
+
+## Bin
+
+- MkCert : `1.4.4`
 
 ## Framework
 
