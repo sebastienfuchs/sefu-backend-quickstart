@@ -27,10 +27,11 @@ project.certificates.generate: project.certificates.generate ## Generate a new c
 
 project.new.symfony: project.new.symfony ## Create a new symfony project
 	docker-compose run backend symfony new . --version="$(SYMFONY_VERSION)" --no-interaction --no-git && docker-compose restart backend
-	make composer.add.symfony
 	make composer.add.phpstan
 	make composer.add.csfixer
 	make composer.add.psalm
+	docker-compose run backend composer require symfony/orm-pack
+	docker-compose run backend composer require --dev symfony/maker-bundle
 
 project.install: project.install ## First install (sudo)
 	sed -i "s/DOMAIN_TO_CHANGE/$(DOMAIN_NAME)/g" ./.docker/config/apache/000-default.conf
