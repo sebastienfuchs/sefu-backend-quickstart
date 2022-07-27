@@ -30,7 +30,6 @@ project.new.symfony: project.new.symfony ## Create a new symfony project
 	make composer.add.symfony
 	make composer.add.phpstan
 	make composer.add.csfixer
-	make composer.add.security-advisories
 	make composer.add.psalm
 
 project.install: project.install ## First install (sudo)
@@ -44,9 +43,6 @@ composer.add.phpstan: composer.add.phpstan ## Add PHPStan
 
 composer.add.csfixer: composer.add.csfixer ## Add php-cs-fixer
 	docker-compose run backend composer require friendsofphp/php-cs-fixer
-
-composer.add.security-advisories: composer.add.security-advisories ## Add security advisories
-	docker-compose run backend composer require --dev roave/security-advisories:dev-latest
 
 composer.add.psalm: composer.add.psalm ## Add psalm
 	docker-compose run backend composer require --dev vimeo/psalm

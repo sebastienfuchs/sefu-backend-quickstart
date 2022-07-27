@@ -73,7 +73,6 @@
 - php-cs-fixer `PHP Coding Standards Fixer`
 - phpstan `Static Analysis Tool`
 - psalm `Finds errors in PHP applications`
-- roave-security-advisories `Security vulnerabilities`
 
 ## Project
 
