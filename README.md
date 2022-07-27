@@ -2,8 +2,8 @@
 
 - Choose your custom domain `sefu.test` on the `.env` :
 - cp .env.dist .env
-- make install
-- make create.symfony.project
+- make project.install
+- make project.new.symfony
 
 - Start to dev in html/src and enjoy :zany_face:
 
@@ -67,6 +67,15 @@
 ## Framework
 
 - Symfony : `6.1.*`
+
+## Composer
+
+- php-cs-fixer `PHP Coding Standards Fixer`
+- phpstan `Static Analysis Tool`
+- psalm `Finds errors in PHP applications`
+- roave-security-advisories `Security vulnerabilities`
+
+## Project
 
 ![services](./.docker/assets/symfony-sample.png)
 
