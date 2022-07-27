@@ -2,6 +2,15 @@
 include .env
 BIN_PATH_FOLDER = cd ./.docker/bin &&
 
+ifneq ("$(wildcard .env.local)", "")
+    include .env.local
+else ifneq ("$(wildcard .env)", "")
+    include .env
+else
+error:
+$(error .env or .env.local file not found.)
+endif
+
 ##@ ✨ Cleanup
 
 .PHONY: clean
@@ -11,17 +20,31 @@ clean: ## Cleanup the project folders (sudo)
 
 ##@ 🪛  Setup environmment
 
-.PHONY: install certificate project
+.PHONY: project.certificates.generate project.new.symfony
 
-certificates.generate: certificate ## Generate a new certificat
+project.certificates.generate: project.certificates.generate ## Generate a new certificat
 	$(BIN_PATH_FOLDER) ./generate_certs.sh $(DOMAIN_NAME) $(MKCERT_VERSION)
 
-create.symfony.project: project ## Create a new symfony project
+project.new.symfony: project.new.symfony ## Create a new symfony project
 	docker-compose run backend symfony new . --version="$(SYMFONY_VERSION)" --no-interaction --no-git && docker-compose restart backend
 
-install: install ## First install (sudo)
+project.install: project.install ## First install (sudo)
 	sed -i "s/DOMAIN_TO_CHANGE/$(DOMAIN_NAME)/g" ./.docker/config/apache/000-default.conf
 	sudo echo "127.0.0.1  $(DOMAIN_NAME)" >> /etc/hosts && make certificates.generate && docker-compose up -d --force-recreate
+
+##@ ⚙️  Composer
+
+composer.add.phpstan: composer.add.phpstan ## Add PHPStan
+	docker-compose run backend composer require --dev phpstan/phpstan
+
+composer.add.csfixer: composer.add.csfixer ## Add php-cs-fixer
+	docker-compose run backend composer require friendsofphp/php-cs-fixer
+
+composer.add.security-advisories: composer.add.security-advisories ## Add security advisories
+	docker-compose run backend composer require --dev roave/security-advisories:dev-latest
+
+composer.add.psalm: composer.add.security-advisories ## Add psalm
+	docker-compose run backend composer require --dev vimeo/psalm
 
 ##@ Helpers
 
