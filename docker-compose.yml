@@ -11,6 +11,8 @@ services:
     ports:
       - '14080:80'
       - '443:443'
+    environment:
+        PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
     working_dir: /var/www/html
     extra_hosts:
       - "host.docker.internal:host-gateway"
